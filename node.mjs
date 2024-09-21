@@ -17,7 +17,8 @@ void main() {
 console.log('START');
 const platformName = platform();
 await makeFileExecutableIfNeeded();
-await runGlslang();
+const result = await runGlslang();
+addDiagnostics(result);
 console.log('FINISH');
 
 async function makeFileExecutableIfNeeded() {
@@ -73,4 +74,23 @@ function getGlslangName() {
 function provideInput(process) {
     process.stdin?.write(sourceCode);
     process.stdin?.end();
+}
+
+function addDiagnostics(glslangOutput) {
+    const glslangOutputRows = glslangOutput.split('\n');
+    for (const glslangOutputRow of glslangOutputRows) {
+        addDiagnosticForRow(glslangOutputRow.trim());
+    }
+}
+
+function addDiagnosticForRow(glslangOutputRow) {
+    const regex = /(?<severity>\w+)\s*:\s*((\d+|\w+)\s*:\s*(?<line>\d+)\s*:\s*)?(?:'(?<snippet>.*)'\s*:\s*)?(?<description>.+)/;
+    const regexResult = regex.exec(glslangOutputRow);
+    if (regexResult?.groups) {
+        const severity = regexResult.groups['severity'];
+        const line = regexResult.groups['line'];
+        const snippet = regexResult.groups['snippet'];
+        const description = regexResult.groups['description'];
+        console.log(`severity: ${severity}, line: ${line}, snippet: ${snippet}, description: ${description}`);
+    }
 }
