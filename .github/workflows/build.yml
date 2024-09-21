@@ -10,3 +10,4 @@ jobs:
               uses: actions/setup-node@v4
             - name: Running the code
               run: node node.mjs
+              working-directory: ./res
